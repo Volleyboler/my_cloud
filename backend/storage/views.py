@@ -1,5 +1,6 @@
 from datetime import timezone
 import os
+import uuid
 
 from django.shortcuts import render
 from django.http import HttpResponse, Http404
@@ -39,7 +40,11 @@ def upload_file(request):
 
     user = request.user
 
-    file_path = default_storage.save(f'uploads/{user.id}/{file.name}', file)
+    ext = os.path.splitext(file.name)[1]
+    unique_filename = f"{uuid.uuid4()}{ext}"
+    file_path = os.path.join('uploads', str(user.id), unique_filename)
+
+    default_storage.save(file_path, file)
 
     db_file = File.objects.create(
         user=user,
@@ -76,25 +81,60 @@ def download_file(request, file_id):
 @permission_classes([IsAuthenticated])
 @api_view(['PATCH'])
 def rename_file(request, file_id):
-    ...
+    file_id = request.data.get('fileId')
+    new_name = request.data.get('newName')
+
+    try:
+        file_obj = File.objects.get(id=file_id, user=request.user)
+    except File.DoesNotExist:
+        return Response({'error': 'Файл не найден'}, status=status.HTTP_404_NOT_FOUND)
+
+    old_path = file_obj.file_path.path
+
+    ext = os.path.splitext(new_name)[1]
+    new_filename = f"{uuid.uuid4()}{ext}"
+    new_path = os.path.join('uploads', str(request.user.id), new_filename)
+
+    os.rename(old_path, new_path)
+
+    file_obj.original_name = new_name
+    file_obj.file_path = new_path
+    file_obj.save()
+
+    return Response({'message': 'Файл переименован'}, status=status.HTTP_200_OK)
 
 
 @permission_classes([IsAuthenticated])
 @api_view(['PATCH'])
 def update_file_comment(request, file_id):
-    ...
+    file_id = request.data.get('fileId')
+    new_comment = request.data.get('newComment')
+
+    try:
+        file_obj = File.objects.get(id=file_id, user=request.user)
+    except File.DoesNotExist:
+        return Response({'error': 'Файл не найден'}, status=status.HTTP_404_NOT_FOUND)
+
+    file_obj.comment = new_comment
+    file_obj.save()
+
+    return Response({'message': 'Комментарий обновлен'}, status=status.HTTP_200_OK)
 
 
 @permission_classes([IsAuthenticated])
 @api_view(['DELETE'])
 def delete_file(request, file_id):
-    file_id = request.data.get('file_id')
+    file_id = request.data.get('fileId')
     try:
         file_obj = File.objects.get(id=file_id, user=request.user)
-        file_obj.delete()
-        return Response({"message": "Файл удален"}, status=status.HTTP_200_OK)
     except File.DoesNotExist:
-        return Response({"error": "Файл не найден"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': 'Файл не найден'}, status=status.HTTP_404_NOT_FOUND)
+    
+    os.remove(file_obj.file_path.path)
+
+    file_obj.delete()
+
+    return Response({'message': 'Файл удален'}, status=status.HTTP_200_OK)
 
 
 @permission_classes([IsAuthenticated])
