@@ -11,7 +11,7 @@ const Header = () => {
 
   return (
     <header className="header">
-      <h1>File Storage</h1>
+      <h1>Dunkan Mycloud</h1>
       <nav>
         {!isAuthenticated ? (
           <>
