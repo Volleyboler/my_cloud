@@ -9,5 +9,5 @@ urlpatterns = [
     path('delete/<int:user_id>', delete_user, name='delete_user'),
     path('login/', user_login, name='user_login'),
     path('logout', user_logout, name='user_logout'),
-    path('status/<int:user_id>', user_status_admin, name='user_status'),
+    path('status/<int:user_id>', user_status_admin, name='user_status_admin'),
 ]
