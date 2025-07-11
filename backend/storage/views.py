@@ -11,7 +11,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.core.files.storage import default_storage
 
-from models import File
+from .models import File
 
 
 @permission_classes([IsAuthenticated])

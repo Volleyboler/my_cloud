@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import axios from '../services/api';
 import Header from '../components/Layout/Header';
 
@@ -13,7 +13,7 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/api/register', { username, email, full_name: fullName, password });
+      const response = await axios.post('/api/register', { username, email, full_name: fullName, password });
       setError('');
       setSuccess('Регистрация успешна! Вы можете войти.');
     } catch (err) {
