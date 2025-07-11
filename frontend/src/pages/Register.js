@@ -27,36 +27,48 @@ const Register = () => {
       <Header />
       <main>
         <h2>Регистрация</h2>
-        {error && <div className="alert error">{error}</div>}
-        {success && <div className="alert success">{success}</div>}
+        {error && <div className="alert error" aria-live="assertive">{error}</div>}
+        {success && <div className="alert success" aria-live="assertive">{success}</div>}
         <form onSubmit={handleSubmit}>
+          <label htmlFor="username">Логин:</label>
           <input
             type="text"
+            id="username"
             placeholder="Логин"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
+            aria-required="true"
           />
+          <label htmlFor="email">Email:</label>
           <input
             type="email"
+            id="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            aria-required="true"
           />
+          <label htmlFor="fullName">Полное имя:</label>
           <input
             type="text"
+            id="fullName"
             placeholder="Полное имя"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             required
+            aria-required="true"
           />
+          <label htmlFor="password">Пароль:</label>
           <input
             type="password"
+            id="password"
             placeholder="Пароль"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            aria-required="true"
           />
           <button type="submit">Зарегистрироваться</button>
         </form>
