@@ -54,6 +54,9 @@ def delete_user(request, user_id):
 @permission_classes([AllowAny])
 @api_view(['POST', 'OPTIONS'])
 def user_login(request):
+    if request.method == 'OPTIONS':
+        return Response(status=status.HTTP_200_OK)
+
     username = request.data.get('username')
     password = request.data.get('password')
 
