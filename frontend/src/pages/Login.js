@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import axios from '../services/api';
-import { loginSuccess } from '../store/AuthSlice';
+import { loginSuccess } from '../store/authSlice';
 import Header from '../components/Layout/Header';
 
 const Login = () => {
