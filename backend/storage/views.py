@@ -69,71 +69,75 @@ def upload_file(request):
 @permission_classes([IsAuthenticated])
 @api_view(['POST'])
 def share_file(request, file_id):
-    ...
+    try:
+        file_obj = File.objects.get(id=file_id, user=request.user)
+    except File.DoesNotExist:
+        return Response({'error': 'Файл не найден'}, status=status.HTTP_404_NOT_FOUND)
+    
+    share_link = request.build_absolute_uri(reverse('download_shared_file', kwargs={'share_link': file_obj.share_link}))
+    return Response({'share_link': share_link}, status=status.HTTP_200_OK)
 
 
 @permission_classes([IsAuthenticated])
 @api_view(['GET'])
 def download_file(request, file_id):
-    ...
-
-
-@permission_classes([IsAuthenticated])
-@api_view(['PATCH'])
-def rename_file(request, file_id):
-    file_id = request.data.get('fileId')
-    new_name = request.data.get('newName')
-
     try:
         file_obj = File.objects.get(id=file_id, user=request.user)
     except File.DoesNotExist:
         return Response({'error': 'Файл не найден'}, status=status.HTTP_404_NOT_FOUND)
+    
+    file_path = file_obj.file.path
+    if not os.path.exists(file_path):
+        raise Http404("Файл не найден")
+    
+    with open(file_path, 'rb') as f:
+        response = HttpResponse(f.read(), content_type='application/octet-stream')
+        response['Content-Disposition'] = f'attachment; filename="{file_obj.original_name}"'
+        file_obj.last_download_date = timezone.now()
+        file_obj.save()
+        return response
 
-    old_path = file_obj.file_path.path
-
+@permission_classes([IsAuthenticated])
+@api_view(['PATCH'])
+def rename_file(request, file_id):
+    new_name = request.data.get('newName')
+    try:
+        file_obj = File.objects.get(id=file_id, user=request.user)
+    except File.DoesNotExist:
+        return Response({'error': 'Файл не найден'}, status=status.HTTP_404_NOT_FOUND)
+    old_path = file_obj.file.path
     ext = os.path.splitext(new_name)[1]
     new_filename = f"{uuid.uuid4()}{ext}"
     new_path = os.path.join('uploads', str(request.user.id), new_filename)
-
     os.rename(old_path, new_path)
-
     file_obj.original_name = new_name
     file_obj.file_path = new_path
     file_obj.save()
-
     return Response({'message': 'Файл переименован'}, status=status.HTTP_200_OK)
 
 
 @permission_classes([IsAuthenticated])
 @api_view(['PATCH'])
 def update_file_comment(request, file_id):
-    file_id = request.data.get('fileId')
     new_comment = request.data.get('newComment')
-
     try:
         file_obj = File.objects.get(id=file_id, user=request.user)
     except File.DoesNotExist:
         return Response({'error': 'Файл не найден'}, status=status.HTTP_404_NOT_FOUND)
-
     file_obj.comment = new_comment
     file_obj.save()
-
     return Response({'message': 'Комментарий обновлен'}, status=status.HTTP_200_OK)
 
 
 @permission_classes([IsAuthenticated])
 @api_view(['DELETE'])
 def delete_file(request, file_id):
-    file_id = request.data.get('fileId')
     try:
         file_obj = File.objects.get(id=file_id, user=request.user)
     except File.DoesNotExist:
         return Response({'error': 'Файл не найден'}, status=status.HTTP_404_NOT_FOUND)
-    
     os.remove(file_obj.file_path.path)
-
     file_obj.delete()
-
     return Response({'message': 'Файл удален'}, status=status.HTTP_200_OK)
 
 

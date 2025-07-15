@@ -30,15 +30,18 @@ class User(AbstractUser):
     username = models.CharField(max_length=20, unique=True)
     full_name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
-    is_admin = models.BooleanField(default=False)
     storage_path = models.CharField(max_length=255)
+    is_admin = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
 
     objects = UserManager()
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'full_name']
 
-    @property
-    def is_staff(self):
-        return self.is_admin
-    
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+
+    def __str__(self):
+        return self.username

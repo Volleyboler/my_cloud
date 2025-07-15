@@ -99,18 +99,15 @@ def user_status_admin(request, user_id):
     if not request.user.is_admin:
         logger.warning(f"User {request.user.username} tried to change admin status without permission")
         return Response({'error': 'Доступ запрещен'}, status=status.HTTP_403_FORBIDDEN)
-
     try:
         user = User.objects.get(id=user_id)
     except User.DoesNotExist:
         logger.warning(f"User with ID {user_id} not found")
         return Response({"error": "Пользователь не найден"}, status=status.HTTP_404_NOT_FOUND)
-
     is_admin = request.data.get('is_admin')
     if is_admin is None:
         logger.warning(f"No 'is_admin' parameter provided for user ID {user_id}")
         return Response({"error": "Не указан параметр is_admin"}, status=status.HTTP_400_BAD_REQUEST)
-
     user.is_admin = is_admin
     user.save()
     logger.info(f"Admin status for user {user.username} updated to {is_admin}")

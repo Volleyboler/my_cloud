@@ -1,13 +1,13 @@
 from django.urls import path
-
-from storage.views import delete_file, download_file, get_files_list, rename_file, share_file, update_file_comment, upload_file
+from storage.views import delete_file, download_file, get_files_list, rename_file, share_file, update_file_comment, upload_file, download_shared_file
 
 urlpatterns = [
     path('upload/', upload_file, name='upload_file'),
     path('download/<int:file_id>', download_file, name='download_file'),
-    path('get-files/', get_files_list, name='get_user_files'),
+    path('get-files/', get_files_list, name='get_user_files'),  # Убедитесь, что путь правильный
     path('rename/<int:file_id>', rename_file, name='rename_file'),
     path('delete/<int:file_id>', delete_file, name='delete_file'),
     path('comment/<int:file_id>', update_file_comment, name="update_comment"),
-    path('share/<int:file_id>', share_file, name="share file"),
+    path('share/<int:file_id>', share_file, name="share_file"),
+    path('download-shared/<uuid:share_link>', download_shared_file, name='download_shared_file'),
 ]
