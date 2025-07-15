@@ -1,0 +1,36 @@
+import React, { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import axios from '../services/api';
+import FileUpload from '../components/Storage/FileUpload';
+import FileList from '../components/Storage/FileList';
+
+const Storage = () => {
+  const [files, setFiles] = useState([]);
+  const dispatch = useDispatch();
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+
+  useEffect(() => {
+    const fetchFiles = async () => {
+      try {
+        const response = await axios.get('/api/storage/get-files/');
+        setFiles(response.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchFiles();
+    }
+  }, [isAuthenticated]);
+
+  return (
+    <div>
+      <h2>Ваше хранилище</h2>
+      <FileUpload />
+      <FileList files={files} />
+    </div>
+  );
+};
+
+export default Storage;

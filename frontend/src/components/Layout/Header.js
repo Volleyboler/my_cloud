@@ -1,8 +1,9 @@
-import { useSelector} from 'react-redux';
+import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const user = useSelector((state) => state.auth.user);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -21,7 +22,7 @@ const Header = () => {
         ) : (
           <>
             <Link to="/storage">Хранилище</Link>
-            {isAuthenticated && isAuthenticated.user.is_admin && (
+            {user && user.is_admin && (
               <Link to="/admin">Админка</Link>
             )}
             <button onClick={handleLogout}>Выход</button>
