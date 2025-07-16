@@ -1,7 +1,6 @@
 from datetime import timezone
 import os
 import uuid
-
 from django.shortcuts import render
 from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404
@@ -10,9 +9,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.core.files.storage import default_storage
-
 from .models import File
-
 
 @permission_classes([IsAuthenticated])
 @api_view(['GET'])
@@ -28,32 +25,25 @@ def get_files_list(request):
     } for f in files]
     return Response(data, status=status.HTTP_200_OK)
 
-
 @permission_classes([IsAuthenticated])
 @api_view(['POST'])
 def upload_file(request):
     file = request.FILES.get('file')
     comment = request.POST.get('comment', '')
-
     if not file:
         return Response({'error': 'Файл не выбран'}, status=status.HTTP_400_BAD_REQUEST)
-
     user = request.user
-
     ext = os.path.splitext(file.name)[1]
     unique_filename = f"{uuid.uuid4()}{ext}"
     file_path = os.path.join('uploads', str(user.id), unique_filename)
-
     default_storage.save(file_path, file)
-
     db_file = File.objects.create(
         user=user,
         original_name=file.name,
         file_size=file.size,
         comment=comment,
-        file_path=file_path
+        file=file
     )
-
     return Response({
         'message': 'Файл успешно загружен',
         'file': {
@@ -65,7 +55,6 @@ def upload_file(request):
         }
     }, status=status.HTTP_201_CREATED)
 
-
 @permission_classes([IsAuthenticated])
 @api_view(['POST'])
 def share_file(request, file_id):
@@ -73,10 +62,8 @@ def share_file(request, file_id):
         file_obj = File.objects.get(id=file_id, user=request.user)
     except File.DoesNotExist:
         return Response({'error': 'Файл не найден'}, status=status.HTTP_404_NOT_FOUND)
-    
     share_link = request.build_absolute_uri(reverse('download_shared_file', kwargs={'share_link': file_obj.share_link}))
     return Response({'share_link': share_link}, status=status.HTTP_200_OK)
-
 
 @permission_classes([IsAuthenticated])
 @api_view(['GET'])
@@ -85,11 +72,9 @@ def download_file(request, file_id):
         file_obj = File.objects.get(id=file_id, user=request.user)
     except File.DoesNotExist:
         return Response({'error': 'Файл не найден'}, status=status.HTTP_404_NOT_FOUND)
-    
     file_path = file_obj.file.path
     if not os.path.exists(file_path):
         raise Http404("Файл не найден")
-    
     with open(file_path, 'rb') as f:
         response = HttpResponse(f.read(), content_type='application/octet-stream')
         response['Content-Disposition'] = f'attachment; filename="{file_obj.original_name}"'
@@ -111,10 +96,9 @@ def rename_file(request, file_id):
     new_path = os.path.join('uploads', str(request.user.id), new_filename)
     os.rename(old_path, new_path)
     file_obj.original_name = new_name
-    file_obj.file_path = new_path
+    file_obj.file.name = new_path
     file_obj.save()
     return Response({'message': 'Файл переименован'}, status=status.HTTP_200_OK)
-
 
 @permission_classes([IsAuthenticated])
 @api_view(['PATCH'])
@@ -128,7 +112,6 @@ def update_file_comment(request, file_id):
     file_obj.save()
     return Response({'message': 'Комментарий обновлен'}, status=status.HTTP_200_OK)
 
-
 @permission_classes([IsAuthenticated])
 @api_view(['DELETE'])
 def delete_file(request, file_id):
@@ -136,25 +119,20 @@ def delete_file(request, file_id):
         file_obj = File.objects.get(id=file_id, user=request.user)
     except File.DoesNotExist:
         return Response({'error': 'Файл не найден'}, status=status.HTTP_404_NOT_FOUND)
-    os.remove(file_obj.file_path.path)
+    os.remove(file_obj.file.path)
     file_obj.delete()
     return Response({'message': 'Файл удален'}, status=status.HTTP_200_OK)
-
 
 @permission_classes([IsAuthenticated])
 @api_view(['GET'])
 def download_shared_file(request, share_link):
     db_file = get_object_or_404(File, share_link=share_link)
-    file_path = db_file.file_path.path
-
+    file_path = db_file.file.path
     if not os.path.exists(file_path):
         raise Http404("Файл не найден")
-
     with open(file_path, 'rb') as f:
         response = HttpResponse(f.read(), content_type='application/octet-stream')
         response['Content-Disposition'] = f'attachment; filename="{db_file.original_name}"'
-
-        db_file.last_download = timezone.now()
+        db_file.last_download_date = timezone.now()
         db_file.save()
-
         return response

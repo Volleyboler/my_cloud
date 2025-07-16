@@ -9,15 +9,15 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('/api/login', { username, password });
-      dispatch(loginSuccess(response.data));
+      const response = await axios.post('/api/accounts/login/', { username, password });
+      dispatch(loginSuccess({ user: response.data.user, token: response.data.token }));
+      localStorage.setItem('token', response.data.token);
       navigate('/storage');
     } catch (err) {
       setError(err.response?.data?.error || 'Ошибка входа');
