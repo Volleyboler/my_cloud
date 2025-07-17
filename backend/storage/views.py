@@ -1,17 +1,21 @@
 from datetime import timezone
 import os
 import uuid
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.core.files.storage import default_storage
 from .models import File
 
+@authentication_classes([SessionAuthentication])
 @permission_classes([IsAuthenticated])
+@login_required
 @api_view(['GET'])
 def get_files_list(request):
     files = File.objects.filter(user=request.user)
