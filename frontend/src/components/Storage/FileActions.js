@@ -1,69 +1,76 @@
 import React from 'react';
-import axios from 'axios';
+import axios from '../../services/api';
 
-const FileItem = ({ file }) => {
-  const downloadFile = async () => {
+const FileItem = ({ file, onFileChange }) => {
+  const handleAction = async (action, data = null) => {
     try {
-      const response = await axios.get(`/api/storage/download/${file.id}`, { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', file.original_name);
-      document.body.appendChild(link);
-      link.click();
+      let response;
+      switch (action) {
+        case 'download':
+          response = await axios.get(`/api/storage/download/${file.id}`, { 
+            responseType: 'blob' 
+          });
+          const url = window.URL.createObjectURL(new Blob([response.data]));
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', file.original_name);
+          document.body.appendChild(link);
+          link.click();
+          break;
+        
+        case 'delete':
+          await axios.delete(`/api/storage/delete/${file.id}`);
+          onFileChange();
+          break;
+          
+        case 'rename':
+          await axios.patch(`/api/storage/rename/${file.id}`, { 
+            newName: data 
+          });
+          onFileChange();
+          break;
+          
+        case 'comment':
+          await axios.patch(`/api/storage/comment/${file.id}`, { 
+            newComment: data 
+          });
+          onFileChange();
+          break;
+          
+        case 'share':
+          response = await axios.post(`/api/storage/share/${file.id}`);
+          navigator.clipboard.writeText(response.data.share_link);
+          alert('Ссылка скопирована в буфер обмена');
+          break;
+          
+        default:
+          break;
+      }
     } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const deleteFile = async () => {
-    try {
-      await axios.delete(`/api/storage/delete/${file.id}`);
-      alert('Файл удален');
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const renameFile = async (newName) => {
-    try {
-      await axios.patch(`/api/storage/rename/${file.id}`, { newName });
-      alert('Файл переименован');
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const changeComment = async (newComment) => {
-    try {
-      await axios.patch(`/api/storage/comment/${file.id}`, { newComment });
-      alert('Комментарий изменен');
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const shareFile = async () => {
-    try {
-      const response = await axios.post(`/api/storage/share/${file.id}`);
-      alert(`Ссылка для скачивания: ${response.data.share_link}`);
-    } catch (error) {
-      console.error(error);
+      console.error('Error:', error);
+      alert(error.response?.data?.error || 'Произошла ошибка');
     }
   };
 
   return (
-    <li>
-      <p>Имя файла: {file.original_name}</p>
-      <p>Комментарий: {file.comment}</p>
-      <p>Размер: {file.file_size} байт</p>
-      <p>Дата загрузки: {new Date(file.upload_date).toLocaleString()}</p>
-      <p>Дата последнего скачивания: {file.last_download_date ? new Date(file.last_download_date).toLocaleString() : 'Не скачивался'}</p>
-      <button onClick={downloadFile}>Скачать</button>
-      <button onClick={() => renameFile(prompt('Введите новое имя файла'))}>Переименовать</button>
-      <button onClick={() => changeComment(prompt('Введите новый комментарий'))}>Изменить комментарий</button>
-      <button onClick={deleteFile}>Удалить</button>
-      <button onClick={shareFile}>Поделиться</button>
+    <li className="file-item">
+      <div className="file-info">
+        <h3>{file.original_name}</h3>
+        <p>Размер: {(file.file_size / 1024).toFixed(2)} KB</p>
+        <p>Загружен: {new Date(file.upload_date).toLocaleString()}</p>
+        {file.comment && <p>Комментарий: {file.comment}</p>}
+      </div>
+      <div className="file-actions">
+        <button onClick={() => handleAction('download')}>Скачать</button>
+        <button onClick={() => handleAction('rename', prompt('Новое имя файла:', file.original_name))}>
+          Переименовать
+        </button>
+        <button onClick={() => handleAction('comment', prompt('Новый комментарий:', file.comment || ''))}>
+          Изменить комментарий
+        </button>
+        <button onClick={() => handleAction('share')}>Поделиться</button>
+        <button className="delete" onClick={() => handleAction('delete')}>Удалить</button>
+      </div>
     </li>
   );
 };

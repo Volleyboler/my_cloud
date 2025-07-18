@@ -1,32 +1,51 @@
 import React, { useState } from 'react';
-import axios from '../services/api';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
+import { loginSuccess } from '../store/AuthSlice';
 import Header from '../components/Layout/Header';
 
 const Register = () => {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState({}); // Изменено на объект
-  const [success, setSuccess] = useState('');
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    full_name: '',
+    password: ''
+  });
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    setErrors(prev => ({ ...prev, [name]: '' }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const requestData = { username, email, full_name: fullName, password };
-    console.log('Sending ', requestData); // Для отладки
+    setIsSubmitting(true);
+    setErrors({});
 
     try {
-      const response = await axios.post('/api/register', requestData);
-      setErrors({}); // Очищаем ошибки
-      setSuccess('Регистрация успешна! Вы можете войти.');
+      const response = await api.post('/api/accounts/register/', formData);
+      
+      dispatch(loginSuccess({
+        user: response.data.user,
+        isAuthenticated: true
+      }));
+      
+      navigate(response.data.user.is_admin ? '/admin' : '/storage');
     } catch (err) {
-      setSuccess('');
-      if (err.response && err.response.data) {
-        setErrors(err.response.data); // Устанавливаем ошибки из ответа
+      if (err.response?.data) {
+        setErrors(err.response.data);
       } else {
-        setErrors({ non_field_errors: ['Ошибка регистрации'] }); // Общая ошибка
+        setErrors({ non_field_errors: ['Ошибка соединения с сервером'] });
       }
-      console.error('Registration failed:', err.response?.data); // Для отладки
+      console.error('Registration error:', err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -35,52 +54,63 @@ const Register = () => {
       <Header />
       <main>
         <h2>Регистрация</h2>
-        {success && <div className="alert success">{success}</div>}
-        {Object.keys(errors).length > 0 && (
-          <div className="alert error">
-            <ul>
-              {Object.entries(errors).map(([key, value]) => (
-                <li key={key}>
-                  {Array.isArray(value) ? value.join(', ') : value}
-                </li>
-              ))}
-            </ul>
-          </div>
+        
+        {errors.non_field_errors && (
+          <div className="alert error">{errors.non_field_errors}</div>
         )}
+
         <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            placeholder="Логин"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-          {errors.username && <div className="field-error">{Array.isArray(errors.username) ? errors.username.join(', ') : errors.username}</div>}
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          {errors.email && <div className="field-error">{Array.isArray(errors.email) ? errors.email.join(', ') : errors.email}</div>}
-          <input
-            type="text"
-            placeholder="Полное имя"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            required
-          />
-          {errors.full_name && <div className="field-error">{Array.isArray(errors.full_name) ? errors.full_name.join(', ') : errors.full_name}</div>}
-          <input
-            type="password"
-            placeholder="Пароль"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          {errors.password && <div className="field-error">{Array.isArray(errors.password) ? errors.password.join(', ') : errors.password}</div>}
-          <button type="submit">Зарегистрироваться</button>
+          <div className="form-group">
+            <label>Логин:</label>
+            <input
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              required
+            />
+            {errors.username && <div className="field-error">{errors.username}</div>}
+          </div>
+
+          <div className="form-group">
+            <label>Email:</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+            {errors.email && <div className="field-error">{errors.email}</div>}
+          </div>
+
+          <div className="form-group">
+            <label>Полное имя:</label>
+            <input
+              type="text"
+              name="full_name"
+              value={formData.full_name}
+              onChange={handleChange}
+              required
+            />
+            {errors.full_name && <div className="field-error">{errors.full_name}</div>}
+          </div>
+
+          <div className="form-group">
+            <label>Пароль:</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+            {errors.password && <div className="field-error">{errors.password}</div>}
+          </div>
+
+          <button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Регистрация...' : 'Зарегистрироваться'}
+          </button>
         </form>
       </main>
     </div>

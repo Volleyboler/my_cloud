@@ -8,9 +8,11 @@ import './styles/global.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <Provider store={store}>
-    <Router>
-      <App />
-    </Router>
-  </Provider>
+  <React.StrictMode>
+    <Provider store={store}>
+      <Router>
+        <App />
+      </Router>
+    </Provider>
+  </React.StrictMode>
 );

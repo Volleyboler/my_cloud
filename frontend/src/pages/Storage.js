@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector} from 'react-redux';
 import axios from '../services/api';
 import FileUpload from '../components/Storage/FileUpload';
 import FileList from '../components/Storage/FileList';
 
 const Storage = () => {
   const [files, setFiles] = useState([]);
-  const dispatch = useDispatch();
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
   useEffect(() => {

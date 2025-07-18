@@ -5,21 +5,34 @@ const authSlice = createSlice({
   initialState: {
     isAuthenticated: false,
     user: null,
-    token: null,
+    loading: false,
+    error: null
   },
   reducers: {
+    loginStart: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
     loginSuccess: (state, action) => {
       state.isAuthenticated = true;
       state.user = action.payload.user;
-      state.token = action.payload.token;
+      state.loading = false;
     },
-    logout: (state) => {
+    loginFailure: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
+    logoutSuccess: (state) => {
       state.isAuthenticated = false;
       state.user = null;
-      state.token = null;
-    },
-  },
+    }
+  }
 });
 
-export const { loginSuccess, logout } = authSlice.actions;
+export const { loginStart, loginSuccess, loginFailure, logoutSuccess } = authSlice.actions;
+
+export const selectCurrentUser = (state) => state.auth.user;
+export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
+export const selectIsAdmin = (state) => state.auth.user?.is_admin || false;
+
 export default authSlice.reducer;

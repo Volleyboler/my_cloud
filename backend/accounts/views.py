@@ -6,19 +6,27 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import User
 from .serializers import RegisterSerializer
+from django.middleware.csrf import get_token
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 logger = logging.getLogger(__name__)
 
 @permission_classes([AllowAny])
 @api_view(['POST'])
 def register_user(request):
-    logger.debug(f"Received registration data: {request.data}")
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save()
-        logger.info(f"User {serializer.validated_data['username']} registered successfully")
-        return Response({"message": "Регистрация успешна"}, status=status.HTTP_201_CREATED)
-    logger.warning(f"Registration failed: {serializer.errors}")
+        user = serializer.save()
+        login(request, user)
+        return Response({
+            "message": "Регистрация успешна",
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "is_admin": user.is_admin
+            }
+        }, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -61,35 +69,31 @@ def delete_user(request, user_id):
 @permission_classes([AllowAny])
 @api_view(['POST'])
 def user_login(request):
-    logger.debug(f"Received login data: {request.data}")
     username = request.data.get('username')
     password = request.data.get('password')
-
+    
     user = authenticate(request, username=username, password=password)
     if user is not None:
         login(request, user)
-        logger.info(f"User {user.username} logged in successfully")
         return Response({
             'message': 'Успешный вход',
             'user': {
                 'id': user.id,
                 'username': user.username,
-                'full_name': user.full_name,
                 'email': user.email,
                 'is_admin': user.is_admin
             }
         }, status=status.HTTP_200_OK)
-    else:
-        logger.warning(f"Login failed for username: {username}")
-        return Response({'error': 'Неверные учетные данные'}, status=status.HTTP_401_UNAUTHORIZED)
+    return Response(
+        {'error': 'Неверные учетные данные'},
+        status=status.HTTP_401_UNAUTHORIZED
+    )
 
 
 @permission_classes([IsAuthenticated])
-@api_view(['GET'])
+@api_view(['POST'])
 def user_logout(request):
-    logger.debug(f"User {request.user.username} is logging out")
     logout(request)
-    logger.info(f"User {request.user.username} logged out successfully")
     return Response({"message": "Выход выполнен успешно"}, status=status.HTTP_200_OK)
 
 
@@ -112,3 +116,12 @@ def user_status_admin(request, user_id):
     user.save()
     logger.info(f"Admin status for user {user.username} updated to {is_admin}")
     return Response({"message": "Статус пользователя обновлен"}, status=status.HTTP_200_OK)
+
+@ensure_csrf_cookie
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_csrf(request):
+    response = Response({'detail': 'CSRF cookie set'})
+    response["Access-Control-Allow-Origin"] = request.headers.get('Origin', '*')
+    response["Access-Control-Allow-Credentials"] = "true"
+    return response
