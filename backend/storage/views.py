@@ -1,6 +1,7 @@
 import os
 import uuid
-from datetime import timezone
+import logging
+from datetime import datetime
 from django.http import Http404, HttpResponse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -8,6 +9,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from .models import File
+from django.conf import settings
 from django.core.files.storage import default_storage
 from django.urls import reverse
 
@@ -67,35 +69,56 @@ def share_file(request, file_id):
 def download_file(request, file_id):
     try:
         file_obj = File.objects.get(id=file_id, user=request.user)
+        file_path = os.path.join(settings.MEDIA_ROOT, file_obj.file.name)
+        
+        if not os.path.exists(file_path):
+            raise Http404("Файл не найден на сервере")
+            
+        with open(file_path, 'rb') as f:
+            response = HttpResponse(f.read(), content_type='application/octet-stream')
+            response['Content-Disposition'] = f'attachment; filename="{file_obj.original_name}"'
+            file_obj.last_download_date = datetime.now()
+            file_obj.save()
+            return response
+            
     except File.DoesNotExist:
         return Response({'error': 'Файл не найден'}, status=status.HTTP_404_NOT_FOUND)
-    file_path = file_obj.file.path
-    if not os.path.exists(file_path):
-        raise Http404("Файл не найден")
-    with open(file_path, 'rb') as f:
-        response = HttpResponse(f.read(), content_type='application/octet-stream')
-        response['Content-Disposition'] = f'attachment; filename="{file_obj.original_name}"'
-        file_obj.last_download_date = timezone.now()
-        file_obj.save()
-        return response
 
 @permission_classes([IsAuthenticated])
 @api_view(['PATCH'])
 def rename_file(request, file_id):
-    new_name = request.data.get('newName')
     try:
         file_obj = File.objects.get(id=file_id, user=request.user)
     except File.DoesNotExist:
         return Response({'error': 'Файл не найден'}, status=status.HTTP_404_NOT_FOUND)
-    old_path = file_obj.file.path
-    ext = os.path.splitext(new_name)[1]
-    new_filename = f"{uuid.uuid4()}{ext}"
-    new_path = os.path.join('uploads', str(request.user.id), new_filename)
-    os.rename(old_path, new_path)
-    file_obj.original_name = new_name
-    file_obj.file.name = new_path
-    file_obj.save()
-    return Response({'message': 'Файл переименован'}, status=status.HTTP_200_OK)
+
+    new_name = request.data.get('newName')
+    if not new_name:
+        return Response({'error': 'Не указано новое имя файла'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        old_path = os.path.join(settings.MEDIA_ROOT, file_obj.file.name)
+        ext = os.path.splitext(file_obj.original_name)[1]
+        new_filename = f"{uuid.uuid4()}{ext}"
+        new_relative_path = os.path.join('uploads', str(request.user.id), new_filename)
+        new_full_path = os.path.join(settings.MEDIA_ROOT, new_relative_path)
+
+        os.makedirs(os.path.dirname(new_full_path), exist_ok=True)
+
+        os.rename(old_path, new_full_path)
+
+        file_obj.original_name = new_name
+        file_obj.file.name = new_relative_path
+        file_obj.save()
+
+        return Response({'message': 'Файл успешно переименован'}, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        logging.error(f"Error renaming file: {str(e)}")
+        return Response(
+            {'error': f'Ошибка при переименовании файла: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 @permission_classes([IsAuthenticated])
 @api_view(['PATCH'])
@@ -130,6 +153,6 @@ def download_shared_file(request, share_link):
     with open(file_path, 'rb') as f:
         response = HttpResponse(f.read(), content_type='application/octet-stream')
         response['Content-Disposition'] = f'attachment; filename="{db_file.original_name}"'
-        db_file.last_download_date = timezone.now()
+        db_file.last_download_date = datetime.now()
         db_file.save()
         return response

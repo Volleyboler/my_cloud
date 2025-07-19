@@ -125,3 +125,16 @@ def get_csrf(request):
     response["Access-Control-Allow-Origin"] = request.headers.get('Origin', '*')
     response["Access-Control-Allow-Credentials"] = "true"
     return response
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def check_auth_status(request):
+    return Response({
+        'isAuthenticated': True,
+        'user': {
+            'id': request.user.id,
+            'username': request.user.username,
+            'email': request.user.email,
+            'is_admin': request.user.is_admin
+        }
+    }, status=status.HTTP_200_OK)

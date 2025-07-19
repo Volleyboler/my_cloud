@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from '../../services/api';
 
-const FileUpload = () => {
+const FileUpload = ({ onUploadSuccess }) => {
   const [file, setFile] = useState(null);
   const [comment, setComment] = useState('');
 
@@ -20,12 +20,14 @@ const FileUpload = () => {
     formData.append('comment', comment);
 
     try {
-      const response = await axios.post('/api/storage/upload/', formData, {
+      await axios.post('/api/storage/upload/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      alert(response.data.message);
+      onUploadSuccess();
+      setFile(null);
+      setComment('');
     } catch (error) {
       console.error(error);
     }

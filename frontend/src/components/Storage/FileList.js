@@ -1,11 +1,15 @@
 import React from 'react';
 import FileItem from './FileActions';
 
-const FileList = ({ files }) => {
+const FileList = ({ files, onFileChange }) => {
   return (
-    <ul>
+    <ul className="file-list">
       {files.map((file) => (
-        <FileItem key={file.id} file={file} />
+        <FileItem 
+          key={file.id} 
+          file={file} 
+          onFileChange={onFileChange}
+        />
       ))}
     </ul>
   );

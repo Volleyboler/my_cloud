@@ -180,3 +180,57 @@ button[disabled] {
   opacity: 0.7;
   cursor: not-allowed;
 }
+
+.file-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 2rem;
+}
+
+.file-item {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.file-info {
+  flex: 1;
+}
+
+.file-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.file-actions button {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.file-actions button:hover {
+  background: #e0e0e0;
+}
+
+.file-actions button.delete {
+  background: #ffebee;
+  border-color: #ffcdd2;
+  color: #c62828;
+}
+
+.file-actions button.delete:hover {
+  background: #ffcdd2;
+}
+
+.file-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

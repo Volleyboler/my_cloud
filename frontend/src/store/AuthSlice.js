@@ -1,11 +1,12 @@
 import { createSlice } from '@reduxjs/toolkit';
+import api from '../services/api';
 
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
     isAuthenticated: false,
     user: null,
-    loading: false,
+    loading: true, // Добавляем начальное состояние загрузки
     error: null
   },
   reducers: {
@@ -25,14 +26,29 @@ const authSlice = createSlice({
     logoutSuccess: (state) => {
       state.isAuthenticated = false;
       state.user = null;
+      state.loading = false;
+    },
+    setLoading: (state, action) => {
+      state.loading = action.payload;
     }
   }
 });
 
-export const { loginStart, loginSuccess, loginFailure, logoutSuccess } = authSlice.actions;
+export const { loginStart, loginSuccess, loginFailure, logoutSuccess, setLoading } = authSlice.actions;
 
-export const selectCurrentUser = (state) => state.auth.user;
-export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
-export const selectIsAdmin = (state) => state.auth.user?.is_admin || false;
+// Добавляем thunk для проверки аутентификации
+export const checkAuth = () => async (dispatch) => {
+  try {
+    dispatch(setLoading(true));
+    const response = await api.get('/api/accounts/status/');
+    if (response.data.isAuthenticated) {
+      dispatch(loginSuccess({ user: response.data.user }));
+    }
+  } catch (error) {
+    dispatch(logoutSuccess());
+  } finally {
+    dispatch(setLoading(false));
+  }
+};
 
 export default authSlice.reducer;
