@@ -1,7 +1,7 @@
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { logoutSuccess, checkAuth } from './store/AuthSlice';
+import { logout, logoutUser } from './store/AuthSlice';
 import axios from './services/api';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -17,7 +17,7 @@ function App() {
   const { isAuthenticated, loading } = useSelector(state => state.auth);
 
   useEffect(() => {
-    dispatch(checkAuth());
+    dispatch(logout());
   }, [dispatch]);
 
   useEffect(() => {
@@ -32,7 +32,7 @@ function App() {
 
           switch (error.response.status) {
             case 401:
-              dispatch(logoutSuccess());
+              dispatch(logoutUser());
               navigate('/login');
               break;
             case 403:

@@ -6,7 +6,7 @@ const authSlice = createSlice({
   initialState: {
     isAuthenticated: false,
     user: null,
-    loading: true, // Добавляем начальное состояние загрузки
+    loading: false,
     error: null
   },
   reducers: {
@@ -23,32 +23,21 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
-    logoutSuccess: (state) => {
+    logoutUser: (state) => {
       state.isAuthenticated = false;
       state.user = null;
-      state.loading = false;
-    },
-    setLoading: (state, action) => {
-      state.loading = action.payload;
     }
   }
 });
 
-export const { loginStart, loginSuccess, loginFailure, logoutSuccess, setLoading } = authSlice.actions;
-
-// Добавляем thunk для проверки аутентификации
-export const checkAuth = () => async (dispatch) => {
+export const logout = () => async (dispatch) => {
   try {
-    dispatch(setLoading(true));
-    const response = await api.get('/api/accounts/status/');
-    if (response.data.isAuthenticated) {
-      dispatch(loginSuccess({ user: response.data.user }));
-    }
+    await api.post('/api/accounts/logout/');
+    dispatch(logoutUser());
   } catch (error) {
-    dispatch(logoutSuccess());
-  } finally {
-    dispatch(setLoading(false));
+    console.error('Logout failed:', error);
   }
 };
 
+export const { loginStart, loginSuccess, loginFailure, logoutUser } = authSlice.actions;
 export default authSlice.reducer;

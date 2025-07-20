@@ -93,8 +93,12 @@ def user_login(request):
 @permission_classes([IsAuthenticated])
 @api_view(['POST'])
 def user_logout(request):
-    logout(request)
-    return Response({"message": "Выход выполнен успешно"}, status=status.HTTP_200_OK)
+    try:
+        logout(request)
+        return Response({"message": "Выход выполнен успешно"}, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f"Logout error: {str(e)}")
+        return Response({"error": "Ошибка при выходе"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @permission_classes([IsAuthenticated])
