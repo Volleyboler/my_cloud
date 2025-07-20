@@ -8,6 +8,7 @@ import { logout } from '../store/AuthSlice';
 
 const Storage = () => {
   const [files, setFiles] = useState([]);
+  const [targetUser, setTargetUser] = useState(null);
   const [searchParams] = useSearchParams();
   const userId = searchParams.get('user');
   const { user } = useSelector(state => state.auth);
@@ -21,8 +22,19 @@ const Storage = () => {
         : '/api/storage/get-files/';
       const response = await axios.get(url);
       setFiles(response.data);
+      
+      if (userId && user?.is_admin) {
+        try {
+          const userResponse = await axios.get(`/api/accounts/users/${userId}/info/`);
+          setTargetUser(userResponse.data);
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+
+          setTargetUser({ username: `ID: ${userId}` });
+        }
+      }
     } catch (error) {
-      console.error(error);
+      console.error('Error fetching files:', error);
     }
   }, [userId, user?.is_admin]);
 
@@ -47,8 +59,8 @@ const Storage = () => {
     <div>
       <div className="page-header">
         <h2>
-          {userId && user?.is_admin 
-            ? `Хранилище пользователя ${user}` 
+          {userId && user?.is_admin
+            ? `Хранилище пользователя ${targetUser?.username || ''}` 
             : 'Ваше хранилище'}
         </h2>
         <button onClick={handleLogout} className="logout-btn">Выход</button>

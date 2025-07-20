@@ -48,6 +48,26 @@ def get_user_list(request):
 
     return Response(data, status=status.HTTP_200_OK)
 
+@permission_classes([IsAuthenticated])
+@api_view(['GET'])
+def get_user_info(request, user_id):
+    if not request.user.is_admin:
+        logger.warning(f"User {request.user.username} tried to access user info without permission")
+        return Response({'error': 'Доступ запрещен'}, status=status.HTTP_403_FORBIDDEN)
+
+    try:
+        user = User.objects.get(id=user_id)
+        data = {
+            'id': user.id,
+            'username': user.username,
+            'full_name': user.full_name,
+            'email': user.email,
+            'is_admin': user.is_admin
+        }
+        return Response(data, status=status.HTTP_200_OK)
+    except User.DoesNotExist:
+        logger.warning(f"User with ID {user_id} not found")
+        return Response({"error": "Пользователь не найден"}, status=status.HTTP_404_NOT_FOUND)
 
 @permission_classes([IsAuthenticated])
 @api_view(['DELETE'])

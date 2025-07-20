@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import register_user, get_user_list, delete_user, user_login, user_logout, user_status_admin, get_csrf, check_auth_status
+from .views import register_user, get_user_list, delete_user, user_login, user_logout, user_status_admin, get_csrf, check_auth_status, get_user_info
 
 urlpatterns = [
     path('register/', register_user, name='register_user'),
@@ -10,4 +10,5 @@ urlpatterns = [
     path('users/<int:user_id>/status/', user_status_admin, name='user_status_admin'),
     path('csrf/', get_csrf, name='get_csrf'),
     path('status/', check_auth_status, name='check_auth_status'),
+    path('users/<int:user_id>/info/', get_user_info, name='get_user_info')
 ]
