@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import delete_file, download_file, get_files_list, rename_file, share_file, update_file_comment, upload_file, download_shared_file
 
+
 urlpatterns = [
     path('upload/', upload_file, name='upload_file'),
     path('download/<int:file_id>/', download_file, name='download_file'),

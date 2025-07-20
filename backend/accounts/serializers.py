@@ -3,6 +3,7 @@ from rest_framework import serializers
 from .models import User
 import re
 
+
 logger = logging.getLogger(__name__)
 
 class RegisterSerializer(serializers.ModelSerializer):

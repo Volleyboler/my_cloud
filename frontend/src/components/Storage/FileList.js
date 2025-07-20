@@ -1,7 +1,7 @@
 import React from 'react';
 import FileItem from './FileActions';
 
-const FileList = ({ files, onFileChange }) => {
+const FileList = ({ files, onFileChange, isAdminView = false }) => {
   return (
     <ul className="file-list">
       {files.map((file) => (
@@ -9,6 +9,7 @@ const FileList = ({ files, onFileChange }) => {
           key={file.id} 
           file={file} 
           onFileChange={onFileChange}
+          isAdminView={isAdminView}
         />
       ))}
     </ul>

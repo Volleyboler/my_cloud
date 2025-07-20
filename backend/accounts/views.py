@@ -9,6 +9,7 @@ from .serializers import RegisterSerializer
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
 
+
 logger = logging.getLogger(__name__)
 
 @permission_classes([AllowAny])

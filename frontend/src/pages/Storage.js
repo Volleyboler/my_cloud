@@ -29,7 +29,6 @@ const Storage = () => {
           setTargetUser(userResponse.data);
         } catch (error) {
           console.error('Error fetching user data:', error);
-
           setTargetUser({ username: `ID: ${userId}` });
         }
       }
@@ -72,8 +71,15 @@ const Storage = () => {
         </div>
       )}
       
-      <FileUpload onUploadSuccess={fetchFiles} />
-      <FileList files={files} onFileChange={fetchFiles} />
+      {(!userId || userId === user?.id.toString()) && (
+        <FileUpload onUploadSuccess={fetchFiles} />
+      )}
+      
+      <FileList 
+        files={files} 
+        onFileChange={fetchFiles} 
+        isAdminView={userId && user?.is_admin}
+      />
     </div>
   );
 };

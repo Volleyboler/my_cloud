@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from '../../services/api';
 
-const FileItem = ({ file, onFileChange }) => {
+const FileItem = ({ file, onFileChange, isAdminView = false }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleAction = async (action, data = null) => {
@@ -62,6 +62,7 @@ const FileItem = ({ file, onFileChange }) => {
         <p>Размер: {(file.file_size / 1024).toFixed(2)} KB</p>
         <p>Загружен: {new Date(file.upload_date).toLocaleString()}</p>
         {file.comment && <p>Комментарий: {file.comment}</p>}
+        {isAdminView && <p>Владелец: {file.user?.username || 'Неизвестно'}</p>}
       </div>
       <div className="file-actions">
         <button 
