@@ -16,7 +16,12 @@ from django.urls import reverse
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_files_list(request):
-    files = File.objects.filter(user=request.user)
+    user_id = request.query_params.get('user')
+    if user_id and request.user.is_admin:
+        files = File.objects.filter(user_id=user_id)
+    else:
+        files = File.objects.filter(user=request.user)
+    
     data = [{
         'id': f.id,
         'original_name': f.original_name,

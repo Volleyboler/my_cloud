@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import axios from '../../services/api';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
   const { user } = useSelector(state => state.auth);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -41,6 +43,10 @@ const UserList = () => {
     }
   };
 
+  const goToUserStorage = (userId) => {
+    navigate(`/storage?user=${userId}`);
+  };
+
   return (
     <div>
       <h2>Список пользователей</h2>
@@ -53,6 +59,7 @@ const UserList = () => {
             <th>Email</th>
             <th>Админ</th>
             <th>Действия</th>
+            <th>Хранилище</th>
           </tr>
         </thead>
         <tbody>
@@ -71,6 +78,9 @@ const UserList = () => {
               </td>
               <td>
                 <button onClick={() => handleDelete(user.id)}>Удалить</button>
+              </td>
+              <td>
+                <button onClick={() => goToUserStorage(user.id)}>Открыть</button>
               </td>
             </tr>
           ))}
