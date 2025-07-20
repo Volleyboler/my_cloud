@@ -14,7 +14,7 @@ import ErrorHandler from './components/Shared/ErrorHandler';
 function App() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isAuthenticated, loading } = useSelector(state => state.auth);
+  const { loading } = useSelector(state => state.auth);
 
   useEffect(() => {
     dispatch(logout());

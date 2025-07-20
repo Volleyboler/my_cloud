@@ -23,7 +23,7 @@ const UserList = () => {
 
   const handleDelete = async (userId) => {
     try {
-      await axios.delete(`/api/accounts/users/${userId}`);
+      await axios.delete(`/api/accounts/users/${userId}/`);
       setUsers(users.filter(u => u.id !== userId));
     } catch (error) {
       console.error(error);

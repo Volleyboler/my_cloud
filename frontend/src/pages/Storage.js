@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
 import axios from '../services/api';
 import FileUpload from '../components/Storage/FileUpload';
 import FileList from '../components/Storage/FileList';
