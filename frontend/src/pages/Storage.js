@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from '../services/api';
 import FileUpload from '../components/Storage/FileUpload';
 import FileList from '../components/Storage/FileList';
@@ -14,7 +14,7 @@ const Storage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const fetchFiles = async () => {
+  const fetchFiles = useCallback(async () => {
     try {
       const url = userId && user?.is_admin 
         ? `/api/storage/get-files/?user=${userId}`
@@ -24,11 +24,11 @@ const Storage = () => {
     } catch (error) {
       console.error(error);
     }
-  };
+  }, [userId, user?.is_admin]);
 
   useEffect(() => {
     fetchFiles();
-  }, [userId]);
+  }, [fetchFiles]);
 
   const goToAdminPanel = () => {
     navigate('/admin');
@@ -45,10 +45,10 @@ const Storage = () => {
 
   return (
     <div>
-      <div className="storage-header">
+      <div className="page-header">
         <h2>
           {userId && user?.is_admin 
-            ? `Хранилище пользователя ${userId}` 
+            ? `Хранилище пользователя ${user}` 
             : 'Ваше хранилище'}
         </h2>
         <button onClick={handleLogout} className="logout-btn">Выход</button>
