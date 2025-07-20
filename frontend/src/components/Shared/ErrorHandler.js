@@ -7,7 +7,6 @@ const ErrorHandler = ({ error }) => {
   const navigate = useNavigate();
   const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
 
-  // Если error не передан, используем значения по умолчанию
   const errorStatus = error?.status || 500;
   let errorMessage = error?.data?.message || 'Произошла непредвиденная ошибка';
 

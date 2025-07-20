@@ -15,7 +15,7 @@ const LoginForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('/api/login', { username, password });
+      const response = await axios.post('/api/accounts/login/', { username, password });
       dispatch(loginSuccess(response.data));
       navigate(response.data.user.is_admin ? '/admin' : '/storage');
     } catch (err) {

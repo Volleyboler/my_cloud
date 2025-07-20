@@ -9,7 +9,7 @@ const UserList = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('/api/users');
+        const response = await axios.get('/api/accounts/users/');
         setUsers(response.data);
       } catch (error) {
         console.error(error);
@@ -23,7 +23,7 @@ const UserList = () => {
 
   const handleDelete = async (userId) => {
     try {
-      await axios.delete(`/api/users/${userId}`);
+      await axios.delete(`/api/accounts/users/${userId}`);
       setUsers(users.filter(u => u.id !== userId));
     } catch (error) {
       console.error(error);
@@ -32,7 +32,7 @@ const UserList = () => {
 
   const toggleAdminStatus = async (userId, isAdmin) => {
     try {
-      await axios.patch(`/api/users/${userId}/status`, { is_admin: !isAdmin });
+      await axios.patch(`/api/accounts/users/${userId}/status/`, { is_admin: !isAdmin });
       setUsers(users.map(u => 
         u.id === userId ? { ...u, is_admin: !isAdmin } : u
       ));
