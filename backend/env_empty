@@ -12,5 +12,5 @@ SECRET_KEY=''
 # Настройка сервера
 DEBUG='False'
 
-# URL развертывания фронтенда
-FRONTEND_URL=''
+# Разрешенные URL через запятую без пробелов
+ALLOWED_HOSTS=''
