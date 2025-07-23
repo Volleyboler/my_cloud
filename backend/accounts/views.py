@@ -93,18 +93,25 @@ def user_login(request):
     username = request.data.get('username')
     password = request.data.get('password')
     
+    if not username or not password:
+        return Response(
+            {'error': 'Необходимо указать имя пользователя и пароль'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
     user = authenticate(request, username=username, password=password)
     if user is not None:
         login(request, user)
         return Response({
-            'message': 'Успешный вход',
-            'user': {
-                'id': user.id,
-                'username': user.username,
-                'email': user.email,
-                'is_admin': user.is_admin
+            "message": "Успешный вход",
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "is_admin": user.is_admin
             }
         }, status=status.HTTP_200_OK)
+    
     return Response(
         {'error': 'Неверные учетные данные'},
         status=status.HTTP_401_UNAUTHORIZED
@@ -142,13 +149,12 @@ def user_status_admin(request, user_id):
     logger.info(f"Admin status for user {user.username} updated to {is_admin}")
     return Response({"message": "Статус пользователя обновлен"}, status=status.HTTP_200_OK)
 
-@ensure_csrf_cookie
+# @ensure_csrf_cookie
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_csrf(request):
     response = Response({'detail': 'CSRF cookie set'})
-    response["Access-Control-Allow-Origin"] = request.headers.get('Origin', '*')
-    response["Access-Control-Allow-Credentials"] = "true"
+    response['X-CSRFToken'] = get_token(request)
     return response
 
 @api_view(['GET'])
