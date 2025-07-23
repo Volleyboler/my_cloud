@@ -73,15 +73,33 @@ def upload_file(request):
 @permission_classes([IsAuthenticated])
 def share_file(request, file_id):
     try:
-        file_obj = File.objects.get(id=file_id)
-        if not check_file_permission(request, file_obj):
-            return Response({'error': 'Доступ запрещен'}, status=status.HTTP_403_FORBIDDEN)
-            
-        share_link = request.build_absolute_uri(reverse('download_shared_file', kwargs={'share_link': file_obj.share_link}))
-        return Response({'share_link': share_link}, status=status.HTTP_200_OK)
+        file_obj = File.objects.get(id=file_id, user=request.user)
+        
+        share_link = request.build_absolute_uri(
+            reverse('download_shared_file', kwargs={'share_link': str(file_obj.share_link)})
+        )
+        
+        return Response(
+            {
+                'share_link': share_link,
+                'file_id': file_obj.id,
+                'original_name': file_obj.original_name
+            }, 
+            status=status.HTTP_200_OK
+        )
+        
     except File.DoesNotExist:
-        return Response({'error': 'Файл не найден'}, status=status.HTTP_404_NOT_FOUND)
-
+        return Response(
+            {'error': 'Файл не найден или у вас нет прав доступа'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        logger.error(f"Error sharing file: {str(e)}")
+        return Response(
+            {'error': 'Ошибка при генерации ссылки'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def download_file(request, file_id):

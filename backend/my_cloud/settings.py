@@ -208,3 +208,15 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ],
 }
+
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Настройки для работы с файлами
+DATA_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 10  # 10MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 10  # 10MB
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000
+
+# Настройки сессии
+SESSION_COOKIE_AGE = 3600 * 24 * 7  # 1 неделя
+SESSION_SAVE_EVERY_REQUEST = True

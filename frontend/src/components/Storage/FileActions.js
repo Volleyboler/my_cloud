@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from '../../services/api';
+import api from '../../services/api';
 
 const FileItem = ({ file, onFileChange, isAdminView = false }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -39,9 +40,22 @@ const FileItem = ({ file, onFileChange, isAdminView = false }) => {
           break;
 
         case 'share':
-          const shareResponse = await axios.post(`/api/storage/share/${file.id}/`);
-          await navigator.clipboard.writeText(shareResponse.data.share_link);
-          alert('Ссылка скопирована в буфер обмена');
+          const response = await api.post(
+                    `/api/storage/share/${file.id}/`,
+                    {},
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.cookie
+                                .split('; ')
+                                .find(row => row.startsWith('csrftoken='))
+                                ?.split('=')[1]
+                        }
+                    }
+                );
+                
+                await navigator.clipboard.writeText(response.data.share_link);
+                alert('Ссылка скопирована в буфер обмена');
           break;
 
         default:

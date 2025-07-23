@@ -149,6 +149,7 @@ def user_status_admin(request, user_id):
     logger.info(f"Admin status for user {user.username} updated to {is_admin}")
     return Response({"message": "Статус пользователя обновлен"}, status=status.HTTP_200_OK)
 
+@ensure_csrf_cookie
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_csrf(request):
