@@ -11,7 +11,11 @@ def generate_file_path(instance, filename):
 
 
 class File(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='files'
+    )
     original_name = models.CharField(max_length=255)
     file_size = models.PositiveIntegerField()
     upload_date = models.DateTimeField(auto_now_add=True)
@@ -22,3 +26,16 @@ class File(models.Model):
 
     def __str__(self):
         return self.original_name
+
+    @property
+    def owner_username(self):
+        return self.user.username
+    
+    class Meta:
+        permissions = [
+            ('can_view_all_files', 'Can view all files'),
+            ('can_share_all_files', 'Can share all files'),
+        ]
+
+    def __str__(self):
+        return f"{self.original_name} (owner: {self.user.username})"

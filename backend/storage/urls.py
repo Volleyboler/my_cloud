@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import delete_file, download_file, get_files_list, rename_file, share_file, update_file_comment, upload_file, download_shared_file
+from .views import delete_file, download_file, get_files_list, rename_file, share_file, update_file_comment, upload_file, download_shared_file, get_user_files
 
 
 urlpatterns = [
@@ -11,4 +11,6 @@ urlpatterns = [
     path('comment/<int:file_id>/', update_file_comment, name="update_comment"),
     path('share/<int:file_id>/', share_file, name="share_file"),
     path('download-shared/<uuid:share_link>/', download_shared_file, name='download_shared_file'),
+    path('admin/files/<int:user_id>/', get_user_files, name='get_user_files'),
+    path('admin/share/<int:file_id>/', share_file, name='admin_share_file'),
 ]

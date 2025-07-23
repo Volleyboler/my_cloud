@@ -3,8 +3,8 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL,
   withCredentials: true,
-  xsrfHeaderName: 'X-CSRFToken',
-  xsrfCookieName: 'csrftoken'
+  // xsrfHeaderName: 'X-CSRFToken',
+  // xsrfCookieName: 'csrftoken'
 });
 
 api.interceptors.request.use(async (config) => {
@@ -41,5 +41,13 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export const getAdminFiles = (userId) => {
+  return api.get(`/api/storage/admin/files/${userId}/`);
+};
+
+export const shareFileAsAdmin = (fileId) => {
+  return api.post(`/api/storage/admin/share/${fileId}/`);
+};
 
 export default api;

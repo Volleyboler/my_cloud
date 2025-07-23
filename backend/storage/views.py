@@ -12,6 +12,7 @@ from .models import File
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.urls import reverse
+from .serializers import FileSerializer
 
 
 logger = logging.getLogger(__name__)
@@ -212,3 +213,19 @@ def download_shared_file(request, share_link):
         file_obj.last_download_date = datetime.now()
         file_obj.save()
         return response
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_files(request, user_id):
+    if not request.user.is_admin:
+        return Response({
+            'status': 'error',
+            'message': 'Permission denied'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    files = File.objects.filter(user__id=user_id)
+    serializer = FileSerializer(files, many=True)
+    return Response({
+        'status': 'success',
+        'files': serializer.data
+    })
